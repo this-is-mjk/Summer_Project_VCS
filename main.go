@@ -1,8 +1,9 @@
 package main
 
 import (
-	// "flag"
+	"flag"
 	"fmt"
+	"github.com/gofor-little/env"
 	"io"
 	"io/fs"
 	"log"
@@ -10,86 +11,112 @@ import (
 	"path/filepath"
 	"strings"
 )
-func checkFileExists(filePath string) bool {
-	_, err := os.Stat(filePath)
-	return !os.IsNotExist(err)
+
+func setEnv(sourceFile string, destiantionFile string) {
+	// Get the current working directory
+	cwd, _ := os.Getwd()
+	// Load an .env file and set the key-value pairs as environment variables.
+	if err := env.Load(filepath.Join(cwd, ".env")); err != nil {
+		log.Fatal("Error201:", err)
+	}
+	// Check if the key-value pairs already exist in the .env file
+	if sourceFile != "" {
+		// If not, write the key-value pair
+		if err := env.Write("SORCE_PATH", sourceFile, ".env", true); err != nil {
+			log.Fatal("Error202:", err)
+		}
+	}
+	if destiantionFile != "" {
+		// If not, write the key-value pair
+		if err := env.Write("DESTINATION_PATH", destiantionFile, ".env", true); err != nil {
+			log.Fatal("Error203:", err)
+		}
+	}
+}
+func getEnv() (string, string) {
+	// Get the current working directory
+	cwd, _ := os.Getwd()
+	// Load an .env file and set the key-value pairs as environment variables.
+	if err := env.Load(filepath.Join(cwd, ".env")); err != nil {
+		log.Fatal("Error301:", err)
+	}
+	// Get an environment variable's value, receiving an error if it is not set or is empty.
+	sourceFile, err1 := env.MustGet("SORCE_PATH")
+	if err1 != nil {
+		// log.Fatal("Error302:", err1)
+		log.Fatal("Please set the SOURCE_PATH by -cSP")
+	}
+	destiantionFile, err2 := env.MustGet("DESTINATION_PATH")
+	if err2 != nil {
+		// log.Fatal("Error303:", err2)
+		log.Fatal("Please set the DESTINATION_PATH by -cBP")
+	}
+	return sourceFile, destiantionFile
 }
 func copyFile(sourceFile string, destiantionFile string) {
-	// open the source file
+	// Open the source file
 	source, err := os.Open(sourceFile)
 	if err != nil {
-		log.Fatal("Error:", err)
+		log.Fatal("Error101:", err)
 	}
 	defer source.Close()
 
 	// Create intermediate directories if they don't exist
 	err1 := os.MkdirAll(filepath.Dir(destiantionFile), os.ModePerm)
 	if err1 != nil {
-		log.Fatal("error1: ", err1);
+		log.Fatal("Error102: ", err1)
 		return
 	}
-	// open the destination file and write
-	if checkFileExists(destiantionFile) {// if exist open
-		
-		destination, err := os.Open(destiantionFile)
-		if err != nil {
-			log.Fatal("Error:", err)
-		}
-		defer source.Close()
-		// write
-		_, err = io.Copy(destination, source) //copy the contents of source to destination file
-		if err != nil {
-			log.Fatal("Error:", err)
-		}
-	} else {// create if do not exist
-		
-		destination, err := os.Create(destiantionFile) //create the destination file
-		if err != nil {
-			fmt.Print("here1\n");
-			log.Fatal("Error:", err)
-		}
-		// write
-		_, err = io.Copy(destination, source) //copy the contents of source to destination file
-		if err != nil {
-			log.Fatal("Error:", err)
-		}
+	// Open the destination file for writing, create it if it doesn't exist
+	destination, err := os.Create(destiantionFile)
+	if err != nil {
+		log.Fatal("Error103:", err)
+	}
+	defer destination.Close()
+	// Write the contents of source to the destination file
+	_, err = io.Copy(destination, source)
+	if err != nil {
+		log.Fatal("Error104:", err)
 	}
 }
-func ittrateOverDir(path string, d fs.DirEntry, backUpDir string, sourceDir string){
+func ittrateOverDir(path string, d fs.DirEntry, backUpDir string, sourceDir string) {
 	if d.IsDir() {
 		fmt.Printf("DIRECTORY DETECTED %s\n", d.Name())
 		return // skip it
-	}else {
+	} else {
 		trimmed := strings.TrimPrefix(path, sourceDir)
-		copyFile(path, backUpDir + trimmed)
+		copyFile(path, backUpDir+trimmed)
 		fmt.Print(".")
-		// fmt.Printf("%s\n", path);
-		// fmt.Printf("%s\n", sourceDir);
-		// fmt.Printf("%s\n", trimmed);
-		// fmt.Printf("%s\n", backUpDir);
-		// fmt.Printf("%s\n", backUpDir + trimmed);
-	}	
+	}
 }
 func main() {
+	SourcePtr := flag.String("cSP", "", "To set source directory path")
+	BackUPPtr := flag.String("cBP", "", "To set backUp directory path")
+	printPathPtr := flag.Bool("PrintPath", false, "To print the current set paths")
+	
+	flag.Parse()
 	// Initial Paths initaisation
-	var backUpDir, sourceDir string
-	sourceDir = "/Users/this_is_mjk/projects/Summer2024_projects/Pclub_VCS/Recrument_task/sourceUpDir"
-	backUpDir = "/Users/this_is_mjk/projects/Summer2024_projects/Pclub_VCS/Recrument_task/backUpDir"
-	os.Setenv("SOURCE_DIR", sourceDir)
-	os.Setenv("BACKUP_DIR", backUpDir)
-
+	setEnv(*SourcePtr, *BackUPPtr)
+	// Get the env variables
+	sourceDir, backupDir := getEnv()
+	// flag to print the current path
+	if *printPathPtr {
+		fmt.Printf("Source Directory: %s\nBackUp Directory: %s\n", sourceDir, backupDir);
+		return
+	}
 	// ittrate over the dir
-	fmt.Print("working...\n");
-	err := filepath.WalkDir(os.Getenv("SOURCE_DIR"), func(path string, d fs.DirEntry, err error) error {
+	fmt.Print("working...\n")
+	err := filepath.WalkDir(sourceDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err // Return the error if encountered during traversal
 		}
-		ittrateOverDir(path, d, os.Getenv("BACKUP_DIR"), os.Getenv("SOURCE_DIR"))
+		ittrateOverDir(path, d, backupDir, sourceDir)
 		return nil
 	})
 	if err != nil {
 		log.Fatalf("!!!!ERROR!!!!\n\nimpossible to walk directories: %s", err)
 	}
-	print("\nFINISHED!\n");
+
+	print("\nFINISHED!\n")
 
 }
