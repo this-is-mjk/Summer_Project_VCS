@@ -5,10 +5,12 @@ the program itself shows you an error and will ask you to do so
 To do that you are required to provide the encryption key which is a 32-char key
 like "0123456789abcdef0123456789abcdef"
 3. you can any time change the directories and view them my using -Printpaths flag, also the encryption key using -PrintEK.
+4. you can decrypt the encrypted file by using -D flag and answaring the required prompts, it will save a copy in your current directory.
 
 ### General ###
 you can get help any time directly by using go run main.go -h or --help, to know about the flages.
 """
+  -D    To decrypt, include -D
   -E    To encrypt and back-it-up, include -E
   -PrintEK
         To print the current set Key, include -PrintEK
