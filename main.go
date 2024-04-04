@@ -135,6 +135,7 @@ func ittrateOverDir(path string, d fs.DirEntry, backUpDir string, sourceDir stri
 	}
 }
 func main() {
+	// flags
 	SourcePtr := flag.String("cSP", "", "To set source directory path, include -cSP=")
 	BackUPPtr := flag.String("cBP", "", "To set backUp directory path, include -cBP=")
 	encrytpionKeyPtr := flag.String("cEK", "", "To set encryption key, include -cEK=")
@@ -142,11 +143,12 @@ func main() {
 	printEKPtr := flag.Bool("PrintEK", false, "To print the current set Key, include -PrintEK")
 	encryption := flag.Bool("E", false, "To encrypt and back-it-up, include -E")
 	flag.Parse()
+
 	// Initial Paths initaisation
 	setEnv(*SourcePtr, *BackUPPtr, *encrytpionKeyPtr)
-	// Get the variables
+	// Get the variables back
 	sourceDir, backupDir := getEnv()
-	// flag to print the current path
+	// flag to print the current path and encryption key
 	if *printPathPtr {
 		fmt.Printf("Source Directory: %s\nBackUp Directory: %s\n", sourceDir, backupDir)
 		return
@@ -160,6 +162,7 @@ func main() {
 		fmt.Printf("Encryption Key: %s\n", EK)
 		return
 	}
+
 	// ittrate over the dir
 	fmt.Print("working...\n")
 	err := filepath.WalkDir(sourceDir, func(path string, d fs.DirEntry, err error) error {

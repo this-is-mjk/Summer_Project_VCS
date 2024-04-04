@@ -1,0 +1,23 @@
+### Functionality ###
+1. at first you need to set up your source and backup directory paths using -cSP, and -cBP, if you don't do so,
+the program itself shows you an error and will ask you to do so
+2. you can use the encryption flag to encrypt the files, -E,
+To do that you are required to provide the encryption key which is a 32-char key
+like "0123456789abcdef0123456789abcdef"
+3. you can any time change the directories and view them my using -Printpaths flag, also the encryption key using -PrintEK.
+
+### General ###
+you can get help any time directly by using go run main.go -h or --help, to know about the flages.
+"""
+  -E    To encrypt and back-it-up, include -E
+  -PrintEK
+        To print the current set Key, include -PrintEK
+  -Printpaths
+        To print the current set paths, include -Printpaths
+  -cBP string
+        To set backUp directory path, include -cBP=
+  -cEK string
+        To set encryption key, include -cEK=
+  -cSP string
+        To set source directory path, include -cSP=
+"""
