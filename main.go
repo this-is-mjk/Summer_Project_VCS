@@ -24,9 +24,12 @@ func ittrateOverDir(path string, d fs.DirEntry, backUpDir string, sourceDir stri
 func main() {
 	// declare flags
 	backupDir, sourceDir, encryption := flags.DeclareFlags()
-	// ittrate over the dir
 	fmt.Print("STARTING\n")
 	logger.LogWrier("STARTING\n", backupDir)
+	if *encryption {
+		logger.LogWrier("ENCRYPTION: ON\n", backupDir)
+	}
+	// ittrate over the dir
 	err := filepath.WalkDir(sourceDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err // Return the error if encountered during traversal
@@ -35,6 +38,7 @@ func main() {
 		return nil
 	})
 	if err != nil {
+		logger.LogWrier("!!!!ERROR!!!!\nimpossible to walk directories: " + err.Error() + "\n\n", backupDir)
 		log.Fatalf("!!!!ERROR!!!!\n\nimpossible to walk directories: %s", err)
 	}
 	print("\nCOMPLETED\n")
